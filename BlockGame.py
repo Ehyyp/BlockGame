@@ -9,6 +9,9 @@ root.geometry("400x200")
 root.resizable(False, False)
 root.title("Palikkapeli")
 
+# Set OS-agnostic game path
+gamePath = os.path.join('src', 'gameGraphics.py')
+
 # Headline font
 custom_font = tkFont.Font(family="Arial", size=25)
 
@@ -26,7 +29,7 @@ def runStage1():
     if speed == 0:
         speed = 0.02
     # Run stage
-    os.system(f"python gameGraphics.py {speed:.2f} stage1")
+    os.system(f"python {gamePath} {speed:.2f} stage1")
 
 # Run stage 2
 def runStage2():
@@ -36,7 +39,7 @@ def runStage2():
     if speed == 0:
         speed = 0.02
     # Run stage
-    os.system(f"python gameGraphics.py {speed:.2f} stage2")
+    os.system(f"python {gamePath} {speed:.2f} stage2")
 
 # Stage 1 run button
 stage1 = ttk.Button(root, text="Stage 1", command=runStage1)

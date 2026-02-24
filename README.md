@@ -10,4 +10,8 @@ The two pyopengl wheels are for python version 3.12 and 64-bit AMD processor. Ot
 
 https://github.com/cgohlke/pyopengl-build/releases
 
+Start the GUI with
+
+    python BlockGame.py
+
 The game is played with WASD keys, has two stages and game speed can be changed with the slider in GUI.
