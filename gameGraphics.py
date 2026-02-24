@@ -20,22 +20,44 @@ jumpTimer = {
     'time': 0
 }
 
+# Times the slide
+slideTimer = {
+    'time': 0
+}
+
 # Holds the game speed data
 gameSpeed = {
-    'speed': 0.04
+    'speed': 0.02
 }
 
 # If command line arguments were used
-if len(sys.argv) == 2:
+if len(sys.argv) == 3:
     gameSpeed['speed'] = float(sys.argv[1])
 
 # Number of obstacles in world
 nObs = 3
+
+# Initialize course stack
 # Defines the obstacle course
-obstacleTypes = ["lowBar", "highBar", "rectangle", "lowBar", "highBar", "rectangle"]
+obstacleTypes = []
+
+# Initialize rectangle locations stack
+# Defines the rectangle obstacles x-axis positions
+# Bars will always be in the same position
+recXPositions = []
+
+# Chooses from the two stages
+if sys.argv[2] == "stage1":
+    # Defines the obstacle course
+    obstacleTypes = ["lowBar", "rectangle", "highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "highBar", "lowBar", "rectangle", "lowBar"]
+    recXPositions = [0, 1, 0, -1, 0, -1]
+elif sys.argv[2] == "stage2":
+    # Defines the obstacle course
+    obstacleTypes = ["highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "lowBar", "rectangle", "highBar", "highBar"]
+    recXPositions = [0, -1, 1, 0]
 
 # Sets up the course
-stage = obstacleCourse(nObs, obstacleTypes)
+stage = obstacleCourse(nObs, obstacleTypes, recXPositions)
 
 def init():
     # Set background color
@@ -142,22 +164,24 @@ def drawWorld():
 # Defines keyboard input
 # WASD controls
 def keyboard(key, x, y):
-    # W = up
-    if key == b'w':
-        if cameraPos['y'] != 0.5:
-            cameraPos['y'] += 0.5
-    # A = left
-    if key == b'a':
-        if cameraPos['x'] != 1:
-            cameraPos['x'] += 1
-    # S = down
-    if key == b's':
-        if cameraPos['y'] != -0.5:
-            cameraPos['y'] -= 0.5
-    # D = right
-    if key == b'd':
-        if cameraPos['x'] != -1:
-            cameraPos['x'] -= 1
+    # Can't move in the air or when sliding
+    if jumpTimer['time'] == 0 and slideTimer['time'] == 0:
+        # W = up
+        if key == b'w':
+            if cameraPos['y'] != 0.5:
+                cameraPos['y'] += 0.5
+        # A = left
+        if key == b'a':
+            if cameraPos['x'] != 1:
+                cameraPos['x'] += 1
+        # S = down
+        if key == b's':
+            if cameraPos['y'] != -0.5:
+                cameraPos['y'] -= 0.5
+        # D = right
+        if key == b'd':
+            if cameraPos['x'] != -1:
+                cameraPos['x'] -= 1
    
     # Tell GLUT that the display needs to be refreshed
     glutPostRedisplay()
@@ -168,12 +192,23 @@ def idle():
     if cameraPos['y'] == 0.5:
         # And jump time ended
         if jumpTimer['time'] == 36:
-            # Bring to ground
+            # Bring to ground and reset timer
             cameraPos['y'] = 0
             jumpTimer['time'] = 0
         # If not, increment jump timer
         else:
             jumpTimer['time'] += 1
+
+    # If player sliding
+    if cameraPos['y'] == -0.5:
+        # And slide time ended
+        if slideTimer['time'] == 36:
+            # Bring to standing and reset timer
+            cameraPos['y'] = 0
+            slideTimer['time'] = 0
+        # If not, increment slide timer
+        else:
+            slideTimer['time'] += 1
 
     # Move obstacles
     #print(stage.obstacles[0][0].z)

@@ -27,9 +27,8 @@ class obstacle:
         elif shapeType == "highBar":
             self.y = 0.3
         
-        # Determining x start position needs to be implemented
+        # x position for bars is always 0, for rectangles it is determined in the obstacleCourse class
         self.x = 0
-
         # z start position given
         self.z = z
 
@@ -39,12 +38,20 @@ class obstacle:
 
     # Reshapes the object
     def reshape(self, shape):
+        # Reshaping changes the dimensions and y position,
+        # as y position is dependent only on the obstacles shape type
         if shape == "rectangle":
             self.dx = 1
             self.dy = 3
-        elif (shape == "lowBar") or (shape == "highBar"):
+            self.y = 0
+        elif shape == "lowBar":
             self.dx = 3
             self.dy = 0.8
+            self.y = -0.6
+        elif shape == "highBar":
+            self.dx = 3
+            self.dy = 0.8
+            self.y = 0.3
         else:
             raise ValueError("Expected types are rectangle, lowBar and highBar!")
 
@@ -53,8 +60,10 @@ class obstacle:
     def moveBack(self, shapeType, zPos):
         # Move to start
         self.z = zPos
+        # Update shape type
+        self.shapeType = shapeType
         # Change shape
-        self.reshape(shapeType)
+        self.reshape(self.shapeType)
     
     # Uses OpenGL to draw the obstacle
     def drawObstacle(self):
@@ -80,11 +89,14 @@ class obstacle:
 class obstacleCourse:
     # Holds all the obstacle objects and their shape type stacks
     # shape type stack is a stack that determines the obstacles shape type through the game
+    # recXPositions holds the rectangle obstacles starting x positions
     obstacles = []
     typeStack = []
+    recXPositions = []
 
     # Initialize obstacles list with number of obstacles and the obstacle shape types stack
-    def __init__(self, numObstacles, obstacleTypes):
+    def __init__(self, numObstacles, obstacleTypes, recXPositions):
+        self.recXPositions = recXPositions
         # Defines first obstacles starting position
         startPos = 5
         # Initialize each obstacle
@@ -93,6 +105,8 @@ class obstacleCourse:
             shapeType = obstacleTypes.pop(0)
             # Add to list
             self.obstacles.append(obstacle(shapeType, startPos))
+            # If the obstacle is a rectangle, determine its x-position from the stack
+            self.relocate(self.obstacles[i])
             # Change starting position
             startPos += 5
         # Save the remainder of initial obstacle types stack
@@ -119,6 +133,8 @@ class obstacleCourse:
                         # Move back and change shape
                         shapeType = self.typeStack.pop(0)
                         obs.moveBack(shapeType, zpos)
+                        # Move the object in x-axis, if shape type changed to or from rectangle
+                        self.relocate(obs)
         # If list is empty, game won
         else:
             # Terminate
@@ -132,7 +148,20 @@ class obstacleCourse:
         for obs in self.obstacles:
             # Draw
             obs.drawObstacle()
-        
+
+    # Relocates an obstacle in the x-axis
+    def relocate(self, obstacle):
+        # It the object is a rectangle, change to xPos
+        if obstacle.shapeType == "rectangle":
+            # Check if the stack is empty
+            if len(self.recXPositions) == 0:
+                raise ValueError("Rectangle positions stack does not have the correct amount of positions!")
+            else:
+                obstacle.x = self.recXPositions.pop(0)
+        # Otherwise move to middle
+        else:
+            obstacle.x = 0
+
     # Check if obstacle hit player
     def checkHit(self, cameraPos):
         # For each obstacle
@@ -143,7 +172,7 @@ class obstacleCourse:
                 if obs.shapeType == "rectangle":
                     if obs.x == cameraPos['x']:
                         # Terminate
-                        print("Game over :(")
+                        print("You lost :(")
                         glutDestroyWindow(glutGetWindow())
                         sys.exit()
                 # If obstacle is a bar, y needs to be checked
@@ -151,14 +180,14 @@ class obstacleCourse:
                 elif obs.shapeType == "highBar":
                     if cameraPos['y'] != -0.5:
                         # Terminate
-                        print("Game over :(")
+                        print("You lost :(")
                         glutDestroyWindow(glutGetWindow())
                         sys.exit()
                 # low bar hits when y is 0 or -0.5
                 elif obs.shapeType == "lowBar":
                     if cameraPos['y'] != 0.5:
                         # Terminate
-                        print("Game over :(")
+                        print("You lost :(")
                         glutDestroyWindow(glutGetWindow())
                         sys.exit()
 
