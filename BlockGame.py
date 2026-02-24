@@ -18,6 +18,9 @@ custom_font = tkFont.Font(family="Arial", size=25)
 # Headline message
 message = tk.Label(root, text="Select stage", font=custom_font)
 
+# Slider info
+sliderMessage = tk.Label(root, text="Game speed")
+
 # Slider to choose stage speed
 speedSlider = ttk.Scale(root, from_=0, to=100, orient='horizontal')
 
@@ -48,6 +51,7 @@ stage2 = ttk.Button(root, text="Stage 2", command=runStage2)
 
 # Pack message, slider and buttons
 message.pack()
+sliderMessage.pack()
 speedSlider.pack()
 stage1.pack(ipadx=20, ipady=20, expand=True)
 stage2.pack(ipadx=20, ipady=20, expand=True)
