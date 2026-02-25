@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import tkinter.font as tkFont
 import os
+import subprocess
 
 # Initialize window
 root = tk.Tk()
@@ -27,22 +28,24 @@ speedSlider = ttk.Scale(root, from_=0, to=100, orient='horizontal')
 # Run stage 1
 def runStage1():
     # Get speed from slider and scale to game speeds
-    speed = speedSlider.get() / 1000
+    speed = round(speedSlider.get() / 1000, 2)
     # Default speed if slider was not moved
     if speed == 0:
         speed = 0.02
+
     # Run stage
-    os.system(f"python {gamePath} {speed:.2f} stage1")
+    subprocess.call(["python", gamePath, str(speed), "stage1"])
 
 # Run stage 2
 def runStage2():
     # Get speed from slider and scale to game speeds
-    speed = speedSlider.get() / 1000
+    speed = round(speedSlider.get() / 1000, 2)
     # Default speed if slider was not moved
     if speed == 0:
         speed = 0.02
+
     # Run stage
-    os.system(f"python {gamePath} {speed:.2f} stage2")
+    subprocess.call(["python", gamePath, str(speed), "stage2"])
 
 # Stage 1 run button
 stage1 = ttk.Button(root, text="Stage 1", command=runStage1)

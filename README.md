@@ -2,8 +2,12 @@
 
 Install requirements with
 
-    pip install pyopengl-3.1.10-cp312-cp312-win_amd64.whl
-    pip install pyopengl_accelerate-3.1.10-cp312-cp312-win_amd64.whl
+    pip install -r requirements.txt
+
+This installs the wheels
+
+    pyopengl-3.1.10-cp312-cp312-win_amd64.whl
+    pyopengl_accelerate-3.1.10-cp312-cp312-win_amd64.whl
 
 The pyopengl wheels are for python version 3.12 and 64-bit AMD processor. Other wheels can be downloaded from:
 
