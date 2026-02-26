@@ -163,14 +163,14 @@ class obstacleCourse:
             obstacle.x = 0
 
     # Check if obstacle hit player
-    def checkHit(self, cameraPos):
+    def checkHit(self, camX, camY):
         # For each obstacle
         for obs in self.obstacles:
             # If obstacle has same x coordinate as camera at z = 0
             if round(obs.z, 0) == 0:
                 # If obstacle is a rectangle, x needs to be checked
                 if obs.shapeType == "rectangle":
-                    if obs.x == cameraPos['x']:
+                    if obs.x == camX:
                         # Terminate
                         print("You lost :(")
                         glutDestroyWindow(glutGetWindow())
@@ -178,14 +178,14 @@ class obstacleCourse:
                 # If obstacle is a bar, y needs to be checked
                 # high bar hits when y is 0 or 0.5
                 elif obs.shapeType == "highBar":
-                    if cameraPos['y'] != -0.5:
+                    if camY != -0.5:
                         # Terminate
                         print("You lost :(")
                         glutDestroyWindow(glutGetWindow())
                         sys.exit()
                 # low bar hits when y is 0 or -0.5
                 elif obs.shapeType == "lowBar":
-                    if cameraPos['y'] != 0.5:
+                    if camY != 0.5:
                         # Terminate
                         print("You lost :(")
                         glutDestroyWindow(glutGetWindow())

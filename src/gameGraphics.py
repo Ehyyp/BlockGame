@@ -8,56 +8,148 @@ from obstacleClasses import obstacleCourse
 # And box drawing function
 from obstacleClasses import drawBox
 
-# Holds the camera position data
-cameraPos = {
-    'x': 0.0,
-    'y': 0.0,
-    'z': 0.0
-}
+# This holds the game state data and methods that need to access that data
+class gameStateObject:
 
-# Times the jump
-jumpTimer = {
-    'time': 0
-}
+    # Defines if the run is for testing or for playing
+    test = None
 
-# Times the slide
-slideTimer = {
-    'time': 0
-}
+    # Holds the camera position data
+    camX = 0.0
+    camY = 0.0
+    camZ = 0.0
 
-# Holds the game speed data
-gameSpeed = {
-    'speed': 0.02
-}
+    # Times the jump and slide
+    jumpTime = 0
+    slideTime = 0
 
-# If command line arguments were used
-if len(sys.argv) == 3:
-    gameSpeed['speed'] = float(sys.argv[1])
+    # Holds the game speed data
+    gameSpeed = 0.02
 
-# Number of obstacles in world
-nObs = 3
+    # Number of obstacles in world
+    nObs = 3
 
-# Initialize course stack
-# Defines the obstacle course
-obstacleTypes = []
-
-# Initialize rectangle locations stack
-# Defines the rectangle obstacles x-axis positions
-# Bars will always be in the same position
-recXPositions = []
-
-# Chooses from the two stages
-if sys.argv[2] == "stage1":
+    # Initialize course stack
     # Defines the obstacle course
-    obstacleTypes = ["lowBar", "rectangle", "highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "highBar", "lowBar", "rectangle", "lowBar"]
-    recXPositions = [0, 1, 0, -1, 0, -1]
-elif sys.argv[2] == "stage2":
-    # Defines the obstacle course
-    obstacleTypes = ["highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "lowBar", "rectangle", "highBar", "highBar"]
-    recXPositions = [0, -1, 1, 0]
+    obstacleTypes = []
 
-# Sets up the course
-stage = obstacleCourse(nObs, obstacleTypes, recXPositions)
+    # Initialize rectangle locations stack
+    # Defines the rectangle obstacles x-axis positions
+    # Bars will always be in the same position
+    recXPositions = []
+
+    # Defines obstacle behaviour
+    stage = None
+
+    # Set speed and testing at construction
+    def __init__(self, speed, test=False):
+        self.speed = float(speed)
+        # Accept boolean and string input to entering testing mode
+        self.test = test
+        if test == "test":
+            self.test = True
+
+    # Initializes the stage data
+    def load_stage(self, stage):
+        # Load test stage, if in testing mode
+        if self.test == True:
+            # Defines the obstacle course
+            self.obstacleTypes = ["lowBar", "rectangle", "highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "highBar", "lowBar", "rectangle", "lowBar"]
+            # Defines the rectangle starting positions
+            self.recXPositions = [0, 1, 0, -1, 0, -1]
+        # Choose from two stages
+        elif stage == "stage1":
+            self.obstacleTypes = ["lowBar", "rectangle", "highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "highBar", "lowBar", "rectangle", "lowBar"]
+            self.recXPositions = [0, 1, 0, -1, 0, -1]
+        elif stage == "stage2":
+            self.obstacleTypes = ["highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "lowBar", "rectangle", "highBar", "highBar"]
+            self.recXPositions = [0, -1, 1, 0]
+        
+        # Set up the obstacle course
+        self.stage = obstacleCourse(self.nObs, self.obstacleTypes, self.recXPositions)
+
+    # Defines keyboard input
+    # WASD controls
+    # The x and y parameters determine the mouse location when key is pressed and are required by the glutKeyboardFunc
+    def keyboard(self, key, x=0, y=0):
+        # Can't move in the air or when sliding
+        if self.jumpTime == 0 and self.slideTime == 0:
+            # W = up
+            if key == b'w':
+                if self.camY != 0.5:
+                    self.camY += 0.5
+            # A = left
+            if key == b'a':
+                if self.camX != 1:
+                    self.camX += 1
+            # S = down
+            if key == b's':
+                if self.camY != -0.5:
+                    self.camY -= 0.5
+            # D = right
+            if key == b'd':
+                if self.camX != -1:
+                    self.camX -= 1
+    
+        # If not in testing mode
+        if self.test == False:
+            # Tell GLUT that the display needs to be refreshed
+            glutPostRedisplay()
+
+    # Defines what happens at idle, i.e. update obstacles and refresh display
+    def idle(self):
+        # If player in air
+        if self.camY == 0.5:
+            # And jump time ended
+            if self.jumpTime == 36:
+                # Bring to ground and reset timer
+                self.camY = 0
+                self.jumpTime = 0
+            # If not, increment jump timer
+            else:
+                self.jumpTime += 1
+
+        # If player sliding
+        if self.camY == -0.5:
+            # And slide time ended
+            if self.slideTime == 36:
+                # Bring to standing and reset timer
+                self.camY = 0
+                self.slideTime = 0
+            # If not, increment slide timer
+            else:
+                self.slideTime += 1
+
+        # Move obstacles
+        self.stage.moveAllObs(self.speed)
+        # Check if player hit an obstacle
+        self.stage.checkHit(self.camX, self.camY)
+
+        # If not in testing mode
+        if self.test == False:
+            # Tell GLUT that the display needs to be refreshed
+            glutPostRedisplay()
+
+    # Sets up the display
+    def display(self):
+        # Clear buffers
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glLoadIdentity()
+    
+        # Set camera position
+        # eyex, eyey, eyez, centerx, centery, centerz, upx, upy, upz
+        #gluLookAt(3, 2, 5, 0, 0.5, 0, 0, 1, 0)
+        #glTranslatef(cameraPos['x'], cameraPos['y'], cameraPos['z'])
+        gluLookAt(self.camX, self.camY, self.camZ, self.camX, self.camY, self.camZ + 1, 0, 1, 0)
+
+        # Draw the world
+        drawWorld()
+        # Draw obstacles
+        self.stage.drawAllObs()
+    
+        # Double buffering displays one buffer and draws on another. Swapping them changes which one is displayed and which one is not
+        # After swapping, the buffer that is no longer displayed is cleared
+        glutSwapBuffers()
 
 def init():
     # Set background color
@@ -91,28 +183,6 @@ def init():
     # Second argument specifies which material parameters track the current color. In our case, we want the material to
     # take into account ambient light and diffuse reflection
     glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE)
-
-
-# Sets up the display
-def display():
-    # Clear buffers
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    glLoadIdentity()
-   
-    # Set camera position
-    # eyex, eyey, eyez, centerx, centery, centerz, upx, upy, upz
-    #gluLookAt(3, 2, 5, 0, 0.5, 0, 0, 1, 0)
-    #glTranslatef(cameraPos['x'], cameraPos['y'], cameraPos['z'])
-    gluLookAt(cameraPos['x'], cameraPos['y'], cameraPos['z'], cameraPos['x'], cameraPos['y'], cameraPos['z'] + 1, 0, 1, 0)
-
-    # Draw the world
-    drawWorld()
-    # Draw obstacles
-    stage.drawAllObs()
-   
-    # Double buffering displays one buffer and draws on another. Swapping them changes which one is displayed and which one is not
-    # After swapping, the buffer that is no longer displayed is cleared
-    glutSwapBuffers()
 
 # Reshapes the window
 def reshape(w, h):
@@ -161,64 +231,11 @@ def drawWorld():
     # Move out of sky matrix
     glPopMatrix()
 
-# Defines keyboard input
-# WASD controls
-def keyboard(key, x, y):
-    # Can't move in the air or when sliding
-    if jumpTimer['time'] == 0 and slideTimer['time'] == 0:
-        # W = up
-        if key == b'w':
-            if cameraPos['y'] != 0.5:
-                cameraPos['y'] += 0.5
-        # A = left
-        if key == b'a':
-            if cameraPos['x'] != 1:
-                cameraPos['x'] += 1
-        # S = down
-        if key == b's':
-            if cameraPos['y'] != -0.5:
-                cameraPos['y'] -= 0.5
-        # D = right
-        if key == b'd':
-            if cameraPos['x'] != -1:
-                cameraPos['x'] -= 1
-   
-    # Tell GLUT that the display needs to be refreshed
-    glutPostRedisplay()
-
-# Defines what happens at idle, i.e. update obstacles and refresh display
-def idle():
-    # If player in air
-    if cameraPos['y'] == 0.5:
-        # And jump time ended
-        if jumpTimer['time'] == 36:
-            # Bring to ground and reset timer
-            cameraPos['y'] = 0
-            jumpTimer['time'] = 0
-        # If not, increment jump timer
-        else:
-            jumpTimer['time'] += 1
-
-    # If player sliding
-    if cameraPos['y'] == -0.5:
-        # And slide time ended
-        if slideTimer['time'] == 36:
-            # Bring to standing and reset timer
-            cameraPos['y'] = 0
-            slideTimer['time'] = 0
-        # If not, increment slide timer
-        else:
-            slideTimer['time'] += 1
-
-    # Move obstacles
-    #print(stage.obstacles[0][0].z)
-    stage.moveAllObs(gameSpeed['speed'])
-    stage.checkHit(cameraPos)
-
-    # Refresh display
-    glutPostRedisplay()
-
 def main():
+    # Initialize game
+    gameState = gameStateObject(sys.argv[1])
+    # Initalize objects
+    gameState.load_stage(sys.argv[2])
     # Initialize GLUT library
     glutInit(sys.argv)
     # Select display channels and buffering. Here 4 channels are used, RGB and depth. Double buffering enabled
@@ -230,10 +247,10 @@ def main():
     glutFullScreen()
     init()
     # Sets the functions that determine how the display, window reshaping and keyboard callbacks work
-    glutDisplayFunc(display)
+    glutDisplayFunc(gameState.display)
     glutReshapeFunc(reshape)
-    glutKeyboardFunc(keyboard)
-    glutIdleFunc(idle)
+    glutKeyboardFunc(gameState.keyboard)
+    glutIdleFunc(gameState.idle)
     # Starts the main loop for the window. This is exited once the program is termintated
     glutMainLoop()
 
