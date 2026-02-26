@@ -54,9 +54,9 @@ class gameStateObject:
         # Load test stage, if in testing mode
         if self.test == True:
             # Defines the obstacle course
-            self.obstacleTypes = ["lowBar", "rectangle", "highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "highBar", "lowBar", "rectangle", "lowBar"]
+            self.obstacleTypes = ["rectangle", "rectangle", "rectangle", "lowBar", "highBar"]
             # Defines the rectangle starting positions
-            self.recXPositions = [0, 1, 0, -1, 0, -1]
+            self.recXPositions = [0, 1, -1]
         # Choose from two stages
         elif stage == "stage1":
             self.obstacleTypes = ["lowBar", "rectangle", "highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "highBar", "lowBar", "rectangle", "lowBar"]
@@ -138,8 +138,6 @@ class gameStateObject:
     
         # Set camera position
         # eyex, eyey, eyez, centerx, centery, centerz, upx, upy, upz
-        #gluLookAt(3, 2, 5, 0, 0.5, 0, 0, 1, 0)
-        #glTranslatef(cameraPos['x'], cameraPos['y'], cameraPos['z'])
         gluLookAt(self.camX, self.camY, self.camZ, self.camX, self.camY, self.camZ + 1, 0, 1, 0)
 
         # Draw the world

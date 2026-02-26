@@ -94,8 +94,11 @@ class obstacleCourse:
     typeStack = []
     recXPositions = []
 
+    # Defines test mode
+    test = False
+
     # Initialize obstacles list with number of obstacles and the obstacle shape types stack
-    def __init__(self, numObstacles, obstacleTypes, recXPositions):
+    def __init__(self, numObstacles, obstacleTypes, recXPositions, test=False):
         self.recXPositions = recXPositions
         # Defines first obstacles starting position
         startPos = 5
@@ -111,6 +114,10 @@ class obstacleCourse:
             startPos += 5
         # Save the remainder of initial obstacle types stack
         self.typeStack = obstacleTypes
+
+        # Set test mode
+        if test == True or test == "test":
+            self.test = True
 
     # Moves all obstacles and checks their positions
     def moveAllObs(self, speed):
@@ -135,12 +142,21 @@ class obstacleCourse:
                         obs.moveBack(shapeType, zpos)
                         # Move the object in x-axis, if shape type changed to or from rectangle
                         self.relocate(obs)
+
+            # Return for testing purposes
+            # Return 1 for not winning, game kept going
+            return 1
+        
         # If list is empty, game won
         else:
-            # Terminate
-            print("You win!")
-            glutDestroyWindow(glutGetWindow())
-            sys.exit()
+            # Terminate glut, if not in testing mode
+            if self.test == False:
+                print("You win!")
+                glutDestroyWindow(glutGetWindow())
+                sys.exit()
+            else:
+                # Return 0 for winning the game
+                return 0
 
     # Draw each obstacle
     def drawAllObs(self):
@@ -171,25 +187,37 @@ class obstacleCourse:
                 # If obstacle is a rectangle, x needs to be checked
                 if obs.shapeType == "rectangle":
                     if obs.x == camX:
-                        # Terminate
-                        print("You lost :(")
-                        glutDestroyWindow(glutGetWindow())
-                        sys.exit()
+                        # Terminate glut, if not in testing mode
+                        if self.test == False:
+                            print("You lost :(")
+                            glutDestroyWindow(glutGetWindow())
+                            sys.exit()
+                        else:
+                            # Return 1 for being hit
+                            return [1, "rectangle"]
                 # If obstacle is a bar, y needs to be checked
                 # high bar hits when y is 0 or 0.5
                 elif obs.shapeType == "highBar":
                     if camY != -0.5:
-                        # Terminate
-                        print("You lost :(")
-                        glutDestroyWindow(glutGetWindow())
-                        sys.exit()
+                        # Terminate glut, if not in testing mode
+                        if self.test == False:
+                            print("You lost :(")
+                            glutDestroyWindow(glutGetWindow())
+                            sys.exit()
+                        else:
+                            return [1, "highBar"]
                 # low bar hits when y is 0 or -0.5
                 elif obs.shapeType == "lowBar":
                     if camY != 0.5:
-                        # Terminate
-                        print("You lost :(")
-                        glutDestroyWindow(glutGetWindow())
-                        sys.exit()
+                        # Terminate glut, if not in testing mode
+                        if self.test == False:
+                            print("You lost :(")
+                            glutDestroyWindow(glutGetWindow())
+                            sys.exit()
+                        else:
+                            return [1, "lowBar"]
+        # Return 0 for not being hit
+        return 0
 
 # Draws an OpenGL box
 def drawBox(width, height, depth):
