@@ -1,8 +1,5 @@
 from src.gameGraphics import gameStateObject
 from src.obstacleClasses import obstacle, obstacleCourse
-from OpenGL.GL import *
-from OpenGL.GLU import *
-from OpenGL.GLUT import *
 import pytest
 
 # Test cases
