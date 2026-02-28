@@ -142,11 +142,9 @@ class obstacleCourse:
                         obs.moveBack(shapeType, zpos)
                         # Move the object in x-axis, if shape type changed to or from rectangle
                         self.relocate(obs)
-
             # Return for testing purposes
             # Return 1 for not winning, game kept going
             return 1
-        
         # If list is empty, game won
         else:
             # Terminate glut, if not in testing mode

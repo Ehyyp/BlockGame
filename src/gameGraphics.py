@@ -4,9 +4,9 @@ from OpenGL.GLUT import *
 import sys
 
 # Import obstacle class
-from obstacleClasses import obstacleCourse
+from src.obstacleClasses import obstacleCourse
 # And box drawing function
-from obstacleClasses import drawBox
+from src.obstacleClasses import drawBox
 
 # This holds the game state data and methods that need to access that data
 class gameStateObject:

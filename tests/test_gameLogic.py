@@ -1,12 +1,22 @@
-from gameGraphics import gameStateObject
-from obstacleClasses import obstacle, obstacleCourse
+from src.gameGraphics import gameStateObject
+from src.obstacleClasses import obstacle, obstacleCourse
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-#import pytest
+import pytest
 
+# Test cases
+hitTestCases = [
+    ([0, 0, 0, 0, 0], "rectangle", 1),
+    ([b'a', 0, 0, 0, 0], "rectangle", 2),
+    ([b'd', 0, 0, 0, 0], "rectangle", 3),
+    ([b'd', 0, b'a', 0, 0], "lowBar", 4),
+    ([b'd', 0, b'a', 0, b'd'], "lowBar", 4),
+    ([b'd', 0, b'a', b'w', 0], "lowBar", 5),
+    ([b'd', 0, b'a', b'w', b'w'], "lowBar", 5),
+]
 # Tests collision with obstacle
-# TODO: Check that at no point in the game the player had same coordinates as a box
+@pytest.mark.parametrize("actions, obstacleType, speed", hitTestCases)
 def testHit(actions, obstacleType, speed):
     # Initialize game
     gameState = gameStateObject(speed, test=True)
@@ -36,7 +46,12 @@ def testHit(actions, obstacleType, speed):
     # Check that the hit obstacle was of correct type
     assert(hitList[-1][1] == obstacleType)
 
+winTestCases = [
+    ([b'd', 0, b'a', b'w', b'w'], 5),
+    ([b'a', b'd', 0, b'w', b's'], 5)
+]
 # Tests collision with obstacle
+@pytest.mark.parametrize("actions, speed", winTestCases)
 def testWin(actions, speed):
     # Initialize game
     gameState = gameStateObject(speed, test=True)
@@ -65,15 +80,20 @@ def testWin(actions, speed):
     assert(winList[-1] == 0)
     assert(winList.contains(1) == 0)
 
+loadTestCases = [
+    ("test", ["rectangle", "rectangle", "rectangle", "lowBar", "highBar"], [0, 1, -1]),
+    ("stage1", ["lowBar", "rectangle", "highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "highBar", "lowBar", "rectangle", "lowBar"], [0, 1, 0, -1, 0, -1]),
+    ("stage2", ["highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "lowBar", "rectangle", "highBar", "highBar"], [0, -1, 1, 0])
+]
 # Test loading the different stages
-def testLoad(stageNames, stages, recPositions):
-    for i in range(0, len(stageNames)):
-        # Initialize
-        gameState = gameStateObject("0.5", test=True)
-        gameState.load_stage(stageNames[i])
-        # Test
-        assert(gameState.obstacleTypes == stages[i])
-        assert(gameState.recXPositions == recPositions[i])
+@pytest.mark.parametrize("stageName, stage, recPosition", loadTestCases)
+def testLoad(stageName, stage, recPosition):
+    # Initialize
+    gameState = gameStateObject("0.5", test=True)
+    gameState.load_stage(stageName)
+    # Test
+    assert(gameState.obstacleTypes == stage)
+    assert(gameState.recXPositions == recPosition)
 
 # Test the keyboard functionality
 def testKeyboard():
@@ -160,7 +180,13 @@ def testKeyboard():
     assert(gameState.camY == 0)
     assert(gameState.camZ == 0)
 
+idleTestCases = [
+    (0.01),
+    (0.02),
+    (0.05)
+]
 # Test that idle function moves objects and registeres hits correctly
+@pytest.mark.parametrize("speed", idleTestCases)
 def testIdle(speed):
     gameState = gameStateObject(speed, test=True)
     gameState.load_stage("test")
@@ -181,8 +207,17 @@ def testIdle(speed):
     gameState.idle()
     assert(gameState.gameLost == True)
     
+reshapeTestCases = [
+    (["rectangle", "lowBar"], 3, 0.8, -0.6),
+    (["highBar", "lowBar"], 3, 0.8, -0.6),
+    (["rectangle", "highBar"], 3, 0.8, 0.3),
+    (["lowBar", "highBar"], 3, 0.8, 0.3),
+    (["lowBar", "rectangle"], 1, 3, 0),
+    (["highBar", "rectangle"], 1, 3, 0),
+]
 # Tests the obstacle.reshape function
-def testReshape(shapes, dx, dy, dz):
+@pytest.mark.parametrize("shapes, dx, dy, y", reshapeTestCases)
+def testReshape(shapes, dx, dy, y):
     # Test reshaping from shapes[0] to shapes[1]
     obs = obstacle(shapes[0], 5)
     assert(obs.shapeType == shapes[0])
@@ -190,9 +225,21 @@ def testReshape(shapes, dx, dy, dz):
     obs.reshape(shapes[1])
     assert(obs.dx == dx)
     assert(obs.dy == dy)
-    assert(obs.dz == dz)
+    assert(obs.y == y)
 
+moveBackTestCases = [
+    (["rectangle", "rectangle"], [-1, 15], 0.02),
+    (["rectangle", "highBar"], [-1, 15], 0.02),
+    (["rectangle", "lowBar"], [-1, 15], 0.02),
+    (["lowBar", "rectangle"], [-1, 15], 0.02),
+    (["lowBar", "highBar"], [-1, 15], 0.02),
+    (["lowBar", "lowBar"], [-1, 15], 0.02),
+    (["highBar", "rectangle"], [-1, 15], 0.02),
+    (["highBar", "highBar"], [-1, 15], 0.02),
+    (["highBar", "lowBar"], [-1, 15], 0.02),
+]
 # Test moving the obstacle back from behind the player
+@pytest.mark.parametrize("shapes, zPositions, speed", moveBackTestCases)
 def testMoveBack(shapes, zPositions, speed):
     obs = obstacle(shapes[0], zPositions[0])
     obs.moveBack(shapes[1], zPositions[1])
@@ -212,16 +259,54 @@ def testMoveBack(shapes, zPositions, speed):
     # Check if obstacle moved back
     assert(gameState.stage.obstacles[0].z == lastZ)
 
+moveTestCases = [
+    ("rectangle", 5, 0.01),
+    ("lowBar", 3, 0.02),
+    ("highBar", 10, 0.1)
+]
 # Test the obstacle.moveObstacle() method
+@pytest.mark.parametrize("shape, z, speed", moveTestCases)
 def testMove(shape, z, speed):
     obs = obstacle(shape, z)
     obs.moveObstacle(speed)
     assert(obs.z == z - speed)
 
+moveAllTestCases = [
+    (3, ["rectangle", "rectangle", "rectangle", "lowBar", "highBar"], [0, 1, -1], 0.02),
+    (3, ["lowBar", "rectangle", "highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "highBar", "lowBar", "rectangle", "lowBar"], [0, 1, 0, -1, 0, -1], 0.03),
+    (3, ["highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "lowBar", "rectangle", "highBar", "highBar"], [0, -1, 1, 0], 0.05)
+]
 # Test moving all obstacles
-def testMoveAll():
-    bruh = 5
+@pytest.mark.parametrize("nObs, obstacleTypes, recXPositions, speed", moveAllTestCases)
+def testMoveAll(nObs, obstacleTypes, recXPositions, speed):
+    # Initialize test
+    course = obstacleCourse(nObs, obstacleTypes, recXPositions, test=True)
+    # Get positions of all obs
+    obs = course.obstacles
+    # Move all obs
+    course.moveAllObs(speed)
+    # Check that all obs moved
+    for i in range(0, len(obs)):
+        assert(obs[i].z != course.obstacles[i].z)
 
+relocateTestCases = [
+    (3, ["rectangle", "rectangle", "rectangle", "lowBar", "highBar"], [0, 1, -1]),
+    (3, ["lowBar", "rectangle", "highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "highBar", "lowBar", "rectangle", "lowBar"], [0, 1, 0, -1, 0, -1]),
+    (3, ["highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "lowBar", "rectangle", "highBar", "highBar"], [0, -1, 1, 0])
+]
 # Test relocating an object in the x-axis
-def testRelocate():
-    bruh = 5
+@pytest.mark.parametrize("nObs, obstacleTypes, recXPositions", relocateTestCases)
+def testRelocate(nObs, obstacleTypes, recXPositions):
+    course = obstacleCourse(nObs, obstacleTypes, recXPositions, test=True)
+    # Relocate all obstacles
+    i = 0
+    for obs in course.obstacles:
+        course.relocate(obs)
+        # If obstacle was a rectangle, check that it got the correct position from recXPositions
+        if obs.shapeType == "rectangle":
+            assert(obs.x == recXPositions[i])
+            i += 1
+        # If obstacle was not a rectangle, it should have x = 0
+        else:
+            assert(obs.x == 0)  
+ 
