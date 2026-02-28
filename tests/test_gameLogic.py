@@ -1,4 +1,4 @@
-from src.gameGraphics import gameStateClass
+from src.gameState import gameStateClass
 from src.obstacleClasses import obstacle, obstacleCourse
 import pytest
 
