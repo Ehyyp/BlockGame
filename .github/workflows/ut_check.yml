@@ -26,4 +26,5 @@ jobs:
       # Run tests with coverage
       - name: Run tests
         run: |
+          cd src
           pytest

@@ -1,5 +1,5 @@
-from src.gameState import gameStateClass
-from src.obstacleClasses import obstacle, obstacleCourse
+from gameState import gameStateClass
+from obstacleClasses import obstacle, obstacleCourse
 import pytest
 
 # Test cases
