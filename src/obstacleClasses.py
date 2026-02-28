@@ -1,8 +1,3 @@
-from OpenGL.GL import *
-from OpenGL.GLU import *
-from OpenGL.GLUT import *
-import sys
-
 # This is used to handle the obstacle data
 # This includes the position and shape of the obstacle
 class obstacle:
@@ -64,21 +59,6 @@ class obstacle:
         self.shapeType = shapeType
         # Change shape
         self.reshape(self.shapeType)
-    
-    # Uses OpenGL to draw the obstacle
-    def drawObstacle(self):
-        # Push new matrix
-        glPushMatrix()
-        # Move to obstacle start
-        glTranslatef(self.x, self.y, self.z)
-        # Set color to red
-        glColor3f(255, 0, 0)
-        # Draw with dimensions
-        drawBox(self.dx, self.dy, self.dz)
-        # Set color back to white
-        glColor3f(1, 1, 1)
-        # Pop matrix
-        glPopMatrix()
 
     # Move object in z-axis by "speed" amount
     def moveObstacle(self, speed):
@@ -93,9 +73,6 @@ class obstacleCourse:
     obstacles = []
     typeStack = []
     recXPositions = []
-
-    # Defines test mode
-    test = False
 
     # Initialize obstacles list with number of obstacles and the obstacle shape types stack
     def __init__(self, numObstacles, obstacleTypes, recXPositions, test=False):
@@ -114,10 +91,6 @@ class obstacleCourse:
             startPos += 5
         # Save the remainder of initial obstacle types stack
         self.typeStack = obstacleTypes
-
-        # Set test mode
-        if test == True or test == "test":
-            self.test = True
 
     # Moves all obstacles and checks their positions
     def moveAllObs(self, speed):
@@ -142,26 +115,11 @@ class obstacleCourse:
                         obs.moveBack(shapeType, zpos)
                         # Move the object in x-axis, if shape type changed to or from rectangle
                         self.relocate(obs)
-            # Return for testing purposes
-            # Return 1 for not winning, game kept going
-            return 1
+            # Return False for not winning, game kept going
+            return False
         # If list is empty, game won
         else:
-            # Terminate glut, if not in testing mode
-            if self.test == False:
-                print("You win!")
-                glutDestroyWindow(glutGetWindow())
-                sys.exit()
-            else:
-                # Return 0 for winning the game
-                return 0
-
-    # Draw each obstacle
-    def drawAllObs(self):
-        # For each object
-        for obs in self.obstacles:
-            # Draw
-            obs.drawObstacle()
+            return True
 
     # Relocates an obstacle in the x-axis
     def relocate(self, obstacle):
@@ -185,77 +143,16 @@ class obstacleCourse:
                 # If obstacle is a rectangle, x needs to be checked
                 if obs.shapeType == "rectangle":
                     if obs.x == camX:
-                        # Terminate glut, if not in testing mode
-                        if self.test == False:
-                            print("You lost :(")
-                            glutDestroyWindow(glutGetWindow())
-                            sys.exit()
-                        else:
-                            # Return 1 for being hit
-                            return [1, "rectangle"]
+                        # Return True for being hit and the shape that was hit
+                        return [True, "rectangle"]
                 # If obstacle is a bar, y needs to be checked
                 # high bar hits when y is 0 or 0.5
                 elif obs.shapeType == "highBar":
                     if camY != -0.5:
-                        # Terminate glut, if not in testing mode
-                        if self.test == False:
-                            print("You lost :(")
-                            glutDestroyWindow(glutGetWindow())
-                            sys.exit()
-                        else:
-                            return [1, "highBar"]
+                        return [True, "highBar"]
                 # low bar hits when y is 0 or -0.5
                 elif obs.shapeType == "lowBar":
                     if camY != 0.5:
-                        # Terminate glut, if not in testing mode
-                        if self.test == False:
-                            print("You lost :(")
-                            glutDestroyWindow(glutGetWindow())
-                            sys.exit()
-                        else:
-                            return [1, "lowBar"]
-        # Return 0 for not being hit
-        return 0
-
-# Draws an OpenGL box
-def drawBox(width, height, depth):
-    # Start specifying the quadilateral
-    glBegin(GL_QUADS)
-    # Specify normal for the quadilateral, x, y, z
-    glNormal3f(0, 0, 1)
-    # Specify four vertices of the rectangle in the front
-    glVertex3f(-width/2, -height/2, depth/2)
-    glVertex3f(width/2, -height/2, depth/2)
-    glVertex3f(width/2, height/2, depth/2)
-    glVertex3f(-width/2, height/2, depth/2)
-    # The back
-    glNormal3f(0, 0, -1)
-    glVertex3f(-width/2, -height/2, -depth/2)
-    glVertex3f(width/2, -height/2, -depth/2)
-    glVertex3f(width/2, height/2, -depth/2)
-    glVertex3f(-width/2, height/2, -depth/2)
-    # Right side
-    glNormal3f(1, 0, 0)
-    glVertex3f(width/2, -height/2, -depth/2)
-    glVertex3f(width/2, -height/2, depth/2)
-    glVertex3f(width/2, height/2, depth/2)
-    glVertex3f(width/2, height/2, -depth/2)
-    # Left side
-    glNormal3f(-1, 0, 0)
-    glVertex3f(-width/2, -height/2, -depth/2)
-    glVertex3f(-width/2, -height/2, depth/2)
-    glVertex3f(-width/2, height/2, depth/2)
-    glVertex3f(-width/2, height/2, -depth/2)
-    # Top
-    glNormal3f(0, 1, 0)
-    glVertex3f(-width/2, height/2, -depth/2)
-    glVertex3f(width/2, height/2, -depth/2)
-    glVertex3f(width/2, height/2, depth/2)
-    glVertex3f(-width/2, height/2, depth/2)
-    # Bottom
-    glNormal3f(0, -1, 0)
-    glVertex3f(-width/2, -height/2, -depth/2)
-    glVertex3f(width/2, -height/2, -depth/2)
-    glVertex3f(width/2, -height/2, depth/2)
-    glVertex3f(-width/2, -height/2, depth/2)
-    glEnd()
+                        return [True, "lowBar"]
+        # Return False for not being hit
+        return [False, " "]

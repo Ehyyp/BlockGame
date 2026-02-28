@@ -1,4 +1,4 @@
-from src.gameGraphics import gameStateObject
+from src.gameGraphics import gameStateClass
 from src.obstacleClasses import obstacle, obstacleCourse
 import pytest
 
@@ -16,9 +16,7 @@ hitTestCases = [
 @pytest.mark.parametrize("actions, obstacleType, speed", hitTestCases)
 def testHit(actions, obstacleType, speed):
     # Initialize game
-    gameState = gameStateObject(speed, test=True)
-    # Load test stage
-    gameState.load_stage("test")
+    gameState = gameStateClass(speed, "test")
     # Saves all hits or no-hits
     hitList = []
     # Used to check if game was won
@@ -30,7 +28,7 @@ def testHit(actions, obstacleType, speed):
             gameState.keyboard(action)
         
         # Move obstacles and check if game was won
-        win = gameState.stage.moveAllObs(speed)
+        win = int(gameState.stage.moveAllObs(speed))
         winList.append(win)
         # Check if player collided with obstacle
         hit = gameState.stage.checkHit(gameState.camX, gameState.camY)
@@ -38,8 +36,10 @@ def testHit(actions, obstacleType, speed):
 
     # Game should not be won in these tests
     assert(winList.count(0) == 0)
-    # Check that only the last action resulted in a hit, i.e. everything else was 0
-    assert(hitList.contains(0) == (len(hitList) - 1))
+    # Check that only the last action resulted in a hit, i.e. everything else was False
+    for i in range(0, len(hitList) - 1):
+        assert(hitList[i][0] == False)
+    assert(hitList[-1][0] == True)
     # Check that the hit obstacle was of correct type
     assert(hitList[-1][1] == obstacleType)
 
@@ -51,9 +51,7 @@ winTestCases = [
 @pytest.mark.parametrize("actions, speed", winTestCases)
 def testWin(actions, speed):
     # Initialize game
-    gameState = gameStateObject(speed, test=True)
-    # Load test stage
-    gameState.load_stage("test")
+    gameState = gameStateClass(speed, "test")
     # Saves all hits or no-hits
     hitList = []
     # Used to check if game was won
@@ -72,7 +70,8 @@ def testWin(actions, speed):
         hitList.append(hit)
 
     # Game should not be lost in these tests
-    assert(hitList.contains(0) == len(hitList))
+    for hit in hitList:
+        assert(hit[0] == False)
     # Check that only the last action resulted in a win
     assert(winList[-1] == 0)
     assert(winList.contains(1) == 0)
@@ -86,8 +85,7 @@ loadTestCases = [
 @pytest.mark.parametrize("stageName, stage, recPosition", loadTestCases)
 def testLoad(stageName, stage, recPosition):
     # Initialize
-    gameState = gameStateObject("0.5", test=True)
-    gameState.load_stage(stageName)
+    gameState = gameStateClass("0.5", stageName)
     # Test
     assert(gameState.obstacleTypes == stage)
     assert(gameState.recXPositions == recPosition)
@@ -95,8 +93,7 @@ def testLoad(stageName, stage, recPosition):
 # Test the keyboard functionality
 def testKeyboard():
     # Initialize game with extremely low speed, so that no object hits when testing keyboard functionality
-    gameState = gameStateObject("0.00001", test=True)
-    gameState.load_stage("test")
+    gameState = gameStateClass("0.00001", "test")
     # Check that initial position is correct
     assert(gameState.camX == 0)
     assert(gameState.camY == 0)
@@ -185,8 +182,7 @@ idleTestCases = [
 # Test that idle function moves objects and registeres hits correctly
 @pytest.mark.parametrize("speed", idleTestCases)
 def testIdle(speed):
-    gameState = gameStateObject(speed, test=True)
-    gameState.load_stage("test")
+    gameState = gameStateClass(speed, "test")
     # Objects should move
     obstacles = gameState.stage.obstacles
     gameState.idle()
@@ -243,7 +239,7 @@ def testMoveBack(shapes, zPositions, speed):
     assert(obs.shapeType == shapes[1])
     assert(obs.z == zPositions[1])
     # Simulate a game run and test if obstacle moves back
-    gameState = gameStateObject(speed, test=True)
+    gameState = gameStateClass(speed, test=True)
     gameState.load_stage("test")
     steps = int(gameState.stage.obstacles[0].z / speed) + 1
     # Get the z position of last obstacle, first obstacle should move to this position

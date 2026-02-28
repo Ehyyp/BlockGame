@@ -11,7 +11,7 @@ root.resizable(False, False)
 root.title("Palikkapeli")
 
 # Set OS-agnostic game path
-gamePath = os.path.join('src', 'gameGraphics.py')
+gamePath = os.path.join('src', 'runGame.py')
 
 # Headline font
 custom_font = tkFont.Font(family="Arial", size=25)
