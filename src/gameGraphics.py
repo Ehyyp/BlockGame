@@ -13,6 +13,9 @@ class gameStateObject:
 
     # Defines if the run is for testing or for playing
     test = None
+    # These are for testing purposes
+    gameLost = False
+    gameWon = False
 
     # Holds the camera position data
     camX = 0.0
@@ -121,9 +124,20 @@ class gameStateObject:
                 self.slideTime += 1
 
         # Move obstacles
-        self.stage.moveAllObs(self.speed)
+        won = self.stage.moveAllObs(self.speed)
+
+        # Testing, checks if player won the game
+        if self.test == True:
+            if won == 0:
+                self.gameWon = True
+
         # Check if player hit an obstacle
-        self.stage.checkHit(self.camX, self.camY)
+        hit = self.stage.checkHit(self.camX, self.camY)
+
+        # Testing, checks if player was hit
+        if self.test == True:
+            if hit == 1:
+                self.gameLost = True
 
         # If not in testing mode
         if self.test == False:
