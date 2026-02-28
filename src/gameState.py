@@ -51,7 +51,7 @@ class gameStateClass:
             # Defines the obstacle course
             self.obstacleTypes = ["lowBar", "rectangle", "highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "highBar", "lowBar", "rectangle", "lowBar"]
             # Defines the rectangle starting positions
-            self.recXPositions = [0, 1, 0, -1, 0, -1]
+            self.recXPositions = [0, 1, 0, -1, 0]
         elif self.stageName == "stage2":
             self.obstacleTypes = ["highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "lowBar", "rectangle", "highBar", "highBar"]
             self.recXPositions = [0, -1, 1, 0]

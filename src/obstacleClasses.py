@@ -75,7 +75,7 @@ class obstacleCourse:
     recXPositions = []
 
     # Initialize obstacles list with number of obstacles and the obstacle shape types stack
-    def __init__(self, numObstacles, obstacleTypes, recXPositions, test=False):
+    def __init__(self, numObstacles, obstacleTypes, recXPositions):
         self.recXPositions = recXPositions
         # Defines first obstacles starting position
         startPos = 5
