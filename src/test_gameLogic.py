@@ -13,6 +13,11 @@ hitTestCases = [
     ([b'd', 0, b'a', b'w', b'w'], "lowBar", 5),
 ]
 # Tests collision with obstacle
+# There is a problem in the test
+#   Does not take into account the fact that obstacles are destroyed when shapeType stack is empty
+#       Object is destroyed before it can be registered to hit
+#           This is due to high speeds used in the tests
+#           Maybe check hit before moving objects?
 @pytest.mark.parametrize("actions, obstacleType, speed", hitTestCases)
 def test_Hit(actions, obstacleType, speed):
     # Initialize game
@@ -180,11 +185,13 @@ idleTestCases = [
     (0.05)
 ]
 # Test that idle function moves objects and registeres hits correctly
+# Here problem is that obstacles list is not a copy of the state.obstacles after initialization, it is still a reference
+#   Hence stage.obstacles = obstacles
 @pytest.mark.parametrize("speed", idleTestCases)
 def test_Idle(speed):
     gameState = gameStateClass(speed, "test")
     # Objects should move
-    obstacles = gameState.stage.obstacles
+    obstacles = gameState.stage.obstacles.copy()
     gameState.idle()
     for i in range(0, len(obstacles)):
         assert(obstacles[i].z == gameState.stage.obstacles[i].z - speed)
