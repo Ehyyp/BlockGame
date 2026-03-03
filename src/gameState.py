@@ -40,7 +40,7 @@ class gameStateClass:
 
     # Set speed and testing at construction
     def __init__(self, speed, stageName):
-        self.speed = float(speed)
+        self.gameSpeed = float(speed)
         self.stageName = stageName
         # Load stage
         self.load_stage()
@@ -112,7 +112,7 @@ class gameStateClass:
                 self.slideTime += 1
 
         # Move obstacles and check if game was won
-        self.gameWon = self.stage.moveAllObs(self.speed)
+        self.gameWon = self.stage.moveAllObs(self.gameSpeed)
 
         # Check if player hit an obstacle and if game was lost
         self.gameLost = self.stage.checkHit(self.camX, self.camY)[0]

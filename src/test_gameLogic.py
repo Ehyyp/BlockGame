@@ -47,6 +47,8 @@ def test_Hit(actions, obstacleType, speed):
     assert(hitList[-1][0] == True)
     # Check that the hit obstacle was of correct type
     assert(hitList[-1][1] == obstacleType)
+    # Garbage collect gameState
+    gameState = None
 
 winTestCases = [
     ([b'd', 0, b'a', b'w', b'w'], 5),
