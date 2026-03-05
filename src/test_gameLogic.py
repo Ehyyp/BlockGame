@@ -4,22 +4,17 @@ import pytest
 
 # Test cases
 hitTestCases = [
-    ([0, 0, 0, 0, 0], "rectangle", 1),
-    ([b'a', 0, 0, 0, 0], "rectangle", 2),
-    ([b'd', 0, 0, 0, 0], "rectangle", 3),
-    ([b'd', 0, b'a', 0, 0], "lowBar", 4),
-    ([b'd', 0, b'a', 0, b'd'], "lowBar", 4),
-    ([b'd', 0, b'a', b'w', 0], "lowBar", 5),
-    ([b'd', 0, b'a', b'w', b'w'], "lowBar", 5),
+    ([0, 0, 0, 0, 0], "rectangle", 0.01, 100),
+    ([b'a', 0, 0, 0, 0], "rectangle", 0.02, 100),
+    ([b'd', 0, 0, 0, 0], "rectangle", 0.03, 100),
+    ([b'd', 0, b'a', 0, 0], "lowBar", 0.04, 100),
+    ([b'd', 0, b'a', 0, b'd'], "lowBar", 0.04, 100),
+    ([b'd', 0, b'a', b'w', 0], "highBar", 0.05, 100),
+    ([b'd', 0, b'a', b'w', b'w'], "highBar", 0.05, 100),
 ]
 # Tests collision with obstacle
-# There is a problem in the test
-#   Does not take into account the fact that obstacles are destroyed when shapeType stack is empty
-#       Object is destroyed before it can be registered to hit
-#           This is due to high speeds used in the tests
-#           Maybe check hit before moving objects?
-@pytest.mark.parametrize("actions, obstacleType, speed", hitTestCases)
-def test_Hit(actions, obstacleType, speed):
+@pytest.mark.parametrize("actions, obstacleType, speed, speedMultiplier", hitTestCases)
+def test_Hit(actions, obstacleType, speed, speedMultiplier):
     # Initialize game
     gameState = gameStateClass(speed, "test")
     # Saves all hits or no-hits
@@ -32,7 +27,11 @@ def test_Hit(actions, obstacleType, speed):
         if action != 0:
             gameState.keyboard(action)
         
-        # Move obstacles and check if game was won
+        # Move objects by speed * (speedMultiplier - 1) distance
+        for i in range(1, speedMultiplier):
+            gameState.stage.moveAllObs(speed)
+
+        # Move obstacles once more and check if game was won
         win = gameState.stage.moveAllObs(speed)
         winList.append(win)
         # Check if player collided with obstacle
@@ -51,12 +50,12 @@ def test_Hit(actions, obstacleType, speed):
     gameState = None
 
 winTestCases = [
-    ([b'd', 0, b'a', b'w', b'w'], 5),
-    ([b'a', b'd', 0, b'w', b's'], 5)
+    ([b'd', 0, b'a', b'w', b'w'], 0.05, 100),
+    ([b'a', b'd', 0, b'w', b's'], 0.05, 100)
 ]
 # Tests collision with obstacle
-@pytest.mark.parametrize("actions, speed", winTestCases)
-def test_Win(actions, speed):
+@pytest.mark.parametrize("actions, speed, speedMultiplier", winTestCases)
+def test_Win(actions, speed, speedMultiplier):
     # Initialize game
     gameState = gameStateClass(speed, "test")
     # Saves all hits or no-hits
@@ -69,7 +68,11 @@ def test_Win(actions, speed):
         if action != 0:
             gameState.keyboard(action)
         
-        # Move obstacles and check if game was won
+        # Move objects by speed * (speedMultiplier - 1) distance
+        for i in range(1, speedMultiplier):
+            gameState.stage.moveAllObs(speed)
+
+        # Move obstacles once more and check if game was won
         win = gameState.stage.moveAllObs(speed)
         winList.append(win)
         # Check if player collided with obstacle
@@ -187,21 +190,21 @@ idleTestCases = [
     (0.05)
 ]
 # Test that idle function moves objects and registeres hits correctly
-# Here problem is that obstacles list is not a copy of the state.obstacles after initialization, it is still a reference
-#   Hence stage.obstacles = obstacles
 @pytest.mark.parametrize("speed", idleTestCases)
 def test_Idle(speed):
     gameState = gameStateClass(speed, "test")
-    # Objects should move
-    obstacles = gameState.stage.obstacles.copy()
+    # Test stage object starting positions where to compare object movement
+    startPos = [5, 10, 15]
+    # Move objects by "speed" amount, once
     gameState.idle()
-    for i in range(0, len(obstacles)):
-        assert(obstacles[i].z == gameState.stage.obstacles[i].z - speed)
+    for i in range(0, len(gameState.stage.obstacles)):
+        assert(startPos[i] == gameState.stage.obstacles[i].z + speed)
 
     # Player should be hit by the rectangle at x = 0
-    startZ = obstacles[0].z
-    # Steps until hit, minus one
-    steps = int(startZ / speed) - 2
+    startZ = 5
+    # Steps until hit, must take into account the rounding of obstacle z position when registering hits
+    # round(obs.z, 0) means that object at z = 0.49 is considered hitting the player
+    steps = int((startZ - 0.51) / speed)
     for i in range(0, steps):
         gameState.idle()
         assert(gameState.gameLost == False)
@@ -274,26 +277,27 @@ def test_Move(shape, z, speed):
 
 moveAllTestCases = [
     (3, ["rectangle", "rectangle", "rectangle", "lowBar", "highBar"], [0, 1, -1], 0.02),
-    (3, ["lowBar", "rectangle", "highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "highBar", "lowBar", "rectangle", "lowBar"], [0, 1, 0, -1, 0], 0.03),
-    (3, ["highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "lowBar", "rectangle", "highBar", "highBar"], [0, -1, 1, 0], 0.05)
+    (4, ["lowBar", "rectangle", "highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "highBar", "lowBar", "rectangle", "lowBar"], [0, 1, 0, -1, 0], 0.03),
+    (5, ["highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "lowBar", "rectangle", "highBar", "highBar"], [0, -1, 1, 0], 0.05)
 ]
 # Test moving all obstacles
 @pytest.mark.parametrize("nObs, obstacleTypes, recXPositions, speed", moveAllTestCases)
 def test_MoveAll(nObs, obstacleTypes, recXPositions, speed):
     # Initialize test
     course = obstacleCourse(nObs, obstacleTypes, recXPositions)
-    # Get positions of all obs
-    obs = course.obstacles
+    # Starting positions of all obs, which are by default placed 5 distance units apart
+    # start = 5, step = 5, exclusive end = (nObs + 1) * 5 => end = nObs * 5
+    obsStart = range(5, (nObs + 1) * 5, 5)
     # Move all obs
     course.moveAllObs(speed)
     # Check that all obs moved
-    for i in range(0, len(obs)):
-        assert(obs[i].z != course.obstacles[i].z)
+    for i in range(0, nObs):
+        assert(obsStart[i] != course.obstacles[i].z)
 
 relocateTestCases = [
-    (3, ["rectangle", "rectangle", "rectangle", "lowBar", "highBar"], [0, 1, -1]),
-    (3, ["lowBar", "rectangle", "highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "highBar", "lowBar", "rectangle", "lowBar"], [0, 1, 0, -1, 0]),
-    (3, ["highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "lowBar", "rectangle", "highBar", "highBar"], [0, -1, 1, 0])
+    (3, ["lowBar", "lowBar", "lowBar", "rectangle", "rectangle", "rectangle"], [0, 1, -1]),
+    (3, ["lowBar", "lowBar", "highBar", "highBar", "rectangle", "rectangle", "rectangle", "highBar", "highBar", "lowBar", "rectangle", "lowBar"], [1, 0, -1, 0]),
+    (3, ["highBar", "highBar", "highBar", "rectangle", "rectangle", "highBar", "lowBar", "rectangle", "highBar", "highBar"], [-1, 1, 0])
 ]
 # Test relocating an object in the x-axis
 @pytest.mark.parametrize("nObs, obstacleTypes, recXPositions", relocateTestCases)
@@ -304,6 +308,9 @@ def test_Relocate(nObs, obstacleTypes, recXPositions):
     course = obstacleCourse(nObs, obstacleTypes, inputRecXPos)
     # Relocate all obstacles
     i = 0
+    # Initializing obstacleCourse already relocates rectangles, so all of the rectangles in the starting screen will reduce the number of elements in recXPositions by one
+    # Therefore if we relocate outside of the game, we need to make sure that the obstacleCourse has enough rectangle positions, otherwise we will be trying to pop from
+    # an empty array. This can be done by having no rectangles in the first nObs of shapes
     for obs in course.obstacles:
         course.relocate(obs)
         # If obstacle was a rectangle, check that it got the correct position from recXPositions

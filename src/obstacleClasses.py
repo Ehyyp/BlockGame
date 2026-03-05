@@ -79,7 +79,7 @@ class obstacleCourse:
         self.recXPositions = recXPositions
         # Defines first obstacles starting position
         startPos = 5
-        # Make sure list is empty before appending
+        # Make sure obstacle list is empty before appending to it
         self.obstacles = []
         # Initialize each obstacle
         for i in range(0, numObstacles):
