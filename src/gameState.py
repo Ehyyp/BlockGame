@@ -13,6 +13,10 @@ class gameStateClass:
     camY = 0.0
     camZ = 0.0
 
+    # Defines max air and sliding times
+    jumpReset = 36
+    slideReset = 36
+
     # Times the jump and slide
     jumpTime = 0
     slideTime = 0
@@ -39,9 +43,14 @@ class gameStateClass:
     stage = None
 
     # Set speed and testing at construction
-    def __init__(self, speed, stageName):
+    # If jump and slide reset times are given, set them as well
+    def __init__(self, speed, stageName, jumpReset=None, slideReset=None):
         self.gameSpeed = float(speed)
         self.stageName = stageName
+        # Set jump and slide reset times if given
+        if (jumpReset != None) and (slideReset != None):
+            self.jumpReset = jumpReset
+            self.slideReset = slideReset
         # Load stage
         self.load_stage()
 
@@ -92,7 +101,7 @@ class gameStateClass:
         # If player in air
         if self.camY == 0.5:
             # And jump time ended
-            if self.jumpTime == 36:
+            if self.jumpTime == self.jumpReset:
                 # Bring to ground and reset timer
                 self.camY = 0
                 self.jumpTime = 0
@@ -103,7 +112,7 @@ class gameStateClass:
         # If player sliding
         if self.camY == -0.5:
             # And slide time ended
-            if self.slideTime == 36:
+            if self.slideTime == self.slideReset:
                 # Bring to standing and reset timer
                 self.camY = 0
                 self.slideTime = 0
@@ -115,4 +124,4 @@ class gameStateClass:
         self.gameWon = self.stage.moveAllObs(self.gameSpeed)
 
         # Check if player hit an obstacle and if game was lost
-        self.gameLost = self.stage.checkHit(self.camX, self.camY)[0]
+        self.gameLost = self.stage.checkHit(self.camX, self.camY)

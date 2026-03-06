@@ -145,16 +145,16 @@ class obstacleCourse:
                 # If obstacle is a rectangle, x needs to be checked
                 if obs.shapeType == "rectangle":
                     if obs.x == camX:
-                        # Return True for being hit and the shape that was hit
-                        return [True, "rectangle"]
+                        # Return True for being hit
+                        return True
                 # If obstacle is a bar, y needs to be checked
                 # high bar hits when y is 0 or 0.5
                 elif obs.shapeType == "highBar":
                     if camY != -0.5:
-                        return [True, "highBar"]
+                        return True
                 # low bar hits when y is 0 or -0.5
                 elif obs.shapeType == "lowBar":
                     if camY != 0.5:
-                        return [True, "lowBar"]
+                        return True
         # Return False for not being hit
-        return [False, " "]
+        return False

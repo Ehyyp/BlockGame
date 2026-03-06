@@ -4,87 +4,66 @@ import pytest
 
 # Test cases
 hitTestCases = [
-    ([0, 0, 0, 0, 0], "rectangle", 0.01, 100),
-    ([b'a', 0, 0, 0, 0], "rectangle", 0.02, 100),
-    ([b'd', 0, 0, 0, 0], "rectangle", 0.03, 100),
-    ([b'd', 0, b'a', 0, 0], "lowBar", 0.04, 100),
-    ([b'd', 0, b'a', 0, b'd'], "lowBar", 0.04, 100),
-    ([b'd', 0, b'a', b'w', 0], "highBar", 0.05, 100),
-    ([b'd', 0, b'a', b'w', b'w'], "highBar", 0.05, 100),
+    ([0], [250], 0.02),
+    ([0, 0, 0, 0, 0], [100, 100, 100, 100, 100], 0.01),
+    ([b'a', 0, 0, 0, 0], [200, 200, 200, 200, 200], 0.01),
+    ([b'd', 0, 0], [100, 100, 300], 0.03),
+    ([b'd', 0, 0, 0, 0], [300, 300, 300, 300, 300], 0.01),
+    ([b'd', 0, b'a', 0, 0], [400, 400, 400, 400, 400], 0.01),
+    ([b'd', 0, b'a', 0, b'd'], [400, 400, 400, 400, 400], 0.01),
+    ([b'd', 0, b'a', b'w', 0], [80, 120, 80, 100, 120], 0.05),
+    ([b'd', 0, b'a', b'w', b'w'], [80, 120, 80, 100, 120], 0.05),
 ]
 # Tests collision with obstacle
-@pytest.mark.parametrize("actions, obstacleType, speed, speedMultiplier", hitTestCases)
-def test_Hit(actions, obstacleType, speed, speedMultiplier):
+@pytest.mark.parametrize("actions, waitTimes, speed", hitTestCases)
+def test_Lose(actions, waitTimes, speed):
     # Initialize game
     gameState = gameStateClass(speed, "test")
-    # Saves all hits or no-hits
-    hitList = []
-    # Used to check if game was won
-    winList = []
     # Execute all keystrokes or waits
-    for action in actions:
-        # If a key was pressed
-        if action != 0:
-            gameState.keyboard(action)
-        
-        # Move objects by speed * (speedMultiplier - 1) distance
-        for i in range(1, speedMultiplier):
-            gameState.stage.moveAllObs(speed)
+    for i in range(0,len(actions)):
+        # Idle for waitTime amount
+        for j in range(0, waitTimes[i]):
+            gameState.idle()
 
-        # Move obstacles once more and check if game was won
-        win = gameState.stage.moveAllObs(speed)
-        winList.append(win)
-        # Check if player collided with obstacle
-        hit = gameState.stage.checkHit(gameState.camX, gameState.camY)
-        hitList.append(hit)
+        # Move if a key was pressed
+        if actions[i] != 0:
+            gameState.keyboard(actions[i])
 
-    # Game should not be won in these tests
-    assert(winList.count(True) == 0)
-    # Check that only the last action resulted in a hit, i.e. everything else was False
-    for i in range(0, len(hitList) - 1):
-        assert(hitList[i][0] == False)
-    assert(hitList[-1][0] == True)
-    # Check that the hit obstacle was of correct type
-    assert(hitList[-1][1] == obstacleType)
-    # Garbage collect gameState
-    gameState = None
+        # Check that game was not won and was lost only after the last action
+        if i != (len(actions) - 1):
+            assert(gameState.gameWon == False)
+            assert(gameState.gameLost == False)
+        else:
+            assert(gameState.gameWon == False)
+            assert(gameState.gameLost == True)
 
 winTestCases = [
-    ([b'd', 0, b'a', b'w', b'w'], 0.05, 100),
-    ([b'a', b'd', 0, b'w', b's'], 0.05, 100)
+    ([b'd', 0, b'a', b'w', b's', 0], [90, 110, 90, 90, 90, 30], 0.05),
+    ([b'a', b'd', 0, b'w', b's', 0], [90, 100, 110, 90, 90, 30], 0.05)
 ]
 # Tests collision with obstacle
-@pytest.mark.parametrize("actions, speed, speedMultiplier", winTestCases)
-def test_Win(actions, speed, speedMultiplier):
+@pytest.mark.parametrize("actions, waitTimes, speed", winTestCases)
+def test_Win(actions, waitTimes, speed):
     # Initialize game
     gameState = gameStateClass(speed, "test")
-    # Saves all hits or no-hits
-    hitList = []
-    # Used to check if game was won
-    winList = []
     # Execute all keystrokes or waits
-    for action in actions:
-        # If a key was pressed
-        if action != 0:
-            gameState.keyboard(action)
-        
-        # Move objects by speed * (speedMultiplier - 1) distance
-        for i in range(1, speedMultiplier):
-            gameState.stage.moveAllObs(speed)
+    for i in range(0,len(actions)):
+        # Idle for waitTime amount
+        for j in range(0, waitTimes[i]):
+            gameState.idle()
 
-        # Move obstacles once more and check if game was won
-        win = gameState.stage.moveAllObs(speed)
-        winList.append(win)
-        # Check if player collided with obstacle
-        hit = gameState.stage.checkHit(gameState.camX, gameState.camY)
-        hitList.append(hit)
+        # Move if a key was pressed
+        if actions[i] != 0:
+            gameState.keyboard(actions[i])
 
-    # Game should not be lost in these tests
-    for hit in hitList:
-        assert(hit[0] == False)
-    # Check that only the last action resulted in a win
-    assert(winList[-1] == True)
-    assert(winList.count(True) == 1)
+        # Check that game was not lost and was won only after the last action
+        if i != (len(actions) - 1):
+            assert(gameState.gameWon == False)
+            assert(gameState.gameLost == False)
+        else:
+            assert(gameState.gameWon == True)
+            assert(gameState.gameLost == False)
+
 
 loadTestCases = [
     ("test", ["lowBar", "highBar"], []),
@@ -155,8 +134,11 @@ def test_Keyboard():
     gameState.keyboard(b'a')
     # Y can be 0.5, 0 or -0.5
     gameState.keyboard(b'w')
+    gameState.idle()
     gameState.keyboard(b'w')
+    gameState.idle()
     gameState.keyboard(b'w')
+    gameState.idle()
     assert(gameState.camY == 0.5)
     # Player also cannot move in air
     gameState.keyboard(b'a')
@@ -168,8 +150,11 @@ def test_Keyboard():
         gameState.idle()
     # Test same when sliding
     gameState.keyboard(b's')
+    gameState.idle()
     gameState.keyboard(b's')
+    gameState.idle()
     gameState.keyboard(b's')
+    gameState.idle()
     assert(gameState.camY == -0.5)
     # Player cant move when sliding
     gameState.keyboard(b'a')
