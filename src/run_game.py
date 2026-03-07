@@ -1,7 +1,7 @@
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-from gameGraphics import graphicsClass
+from game_graphics import graphics_class
 import sys
 
 def init():
@@ -58,7 +58,7 @@ def reshape(w, h):
 
 def main():
     # Initialize game
-    graphicsObject = graphicsClass(sys.argv[1], sys.argv[2])
+    graphics_object = graphics_class(sys.argv[1], sys.argv[2])
     # Initialize GLUT library
     glutInit(sys.argv)
     # Select display channels and buffering. Here 4 channels are used, RGB and depth. Double buffering enabled
@@ -70,10 +70,10 @@ def main():
     glutFullScreen()
     init()
     # Sets the functions that determine how the display, window reshaping and keyboard callbacks work
-    glutDisplayFunc(graphicsObject.display)
+    glutDisplayFunc(graphics_object.display)
     glutReshapeFunc(reshape)
-    glutKeyboardFunc(graphicsObject.keyboard)
-    glutIdleFunc(graphicsObject.idle)
+    glutKeyboardFunc(graphics_object.keyboard)
+    glutIdleFunc(graphics_object.idle)
     # Starts the main loop for the window. This is exited once the program is termintated
     glutMainLoop()
 

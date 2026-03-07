@@ -1,6 +1,14 @@
-# This is used to handle the obstacle data
-# This includes the position and shape of the obstacle
-class obstacle:
+"""
+obstacle_classes.py module defines Obstacle and ObstacleCourse
+classes. Obstacle class handles the data of a single obstacle
+and ObstacleCourse handles the data of all obstacles in the
+game.
+"""
+
+class Obstacle:
+    """
+    Handles obstacle shape and position data
+    """
     # Dimensions
     x = None
     y = None
@@ -9,30 +17,34 @@ class obstacle:
     dx = None
     dy = None
     dz = 0.1
-    # shapeType, which is square or bar
-    shapeType = None
+    # shape_type, which is square or bar
+    shape_type = None
 
     # Constructs the obstacle with specified type
-    def __init__(self, shapeType, z):
+    def __init__(self, shape_type, z):
         # y coordinate is based on the type of obstacle
-        if shapeType == "rectangle":
+        if shape_type == "rectangle":
             self.y = 0
-        elif shapeType == "lowBar":
+        elif shape_type == "lowBar":
             self.y = -0.6
-        elif shapeType == "highBar":
+        elif shape_type == "highBar":
             self.y = 0.3
-        
-        # x position for bars is always 0, for rectangles it is determined in the obstacleCourse class
+
+        # x position for bars is always 0, for rectangles it is
+        # determined in the obstacle_course class
         self.x = 0
         # z start position given
         self.z = z
 
         # Reshape the obstacle to correct type
-        self.shapeType = shapeType
-        self.reshape(shapeType)
+        self.shape_type = shape_type
+        self.reshape(shape_type)
 
-    # Reshapes the object
     def reshape(self, shape):
+        """
+        Reshapes the object to rectangle, lowBar or highBar.
+        Also changes the y position of the obstacle
+        """
         # Reshaping changes the dimensions and y position,
         # as y position is dependent only on the obstacles shape type
         if shape == "rectangle":
@@ -50,111 +62,135 @@ class obstacle:
         else:
             raise ValueError("Expected types are rectangle, lowBar and highBar!")
 
-    # Move the obstacle back to start
-    # shapeType specifies new shape for object
-    def moveBack(self, shapeType, zPos):
+    def move_back(self, shape_type, z_pos):
+        """
+        Move obstacle to z_pos and reshape it to shape_type
+        """
         # Move to start
-        self.z = zPos
+        self.z = z_pos
         # Update shape type
-        self.shapeType = shapeType
+        self.shape_type = shape_type
         # Change shape
-        self.reshape(self.shapeType)
+        self.reshape(self.shape_type)
 
-    # Move object in z-axis by "speed" amount
-    def moveObstacle(self, speed):
+    def move_obstacle(self, speed):
+        """
+        Move object in z-axis by "speed" amount
+        """
         self.z -= speed
 
 
 # Controls all of the obstacles
-class obstacleCourse:
+class ObstacleCourse:
+    """
+    Handles the stage related data that includes obstacles, obstacle types
+    and rectangle positions.
+    Defines methods for moving all obstacles, changing obstacles x-axis location
+    and checking if the player was hit by an obstacle.
+    """
     # Holds all the obstacle objects and their shape type stacks
-    # shape type stack is a stack that determines the obstacles shape type through the game
-    # recXPositions holds the rectangle obstacles starting x positions
     obstacles = []
-    typeStack = []
-    recXPositions = []
+    # Determines the obstacles shape type through the game
+    type_stack = []
+    # Holds the rectangle obstacles starting x positions
+    rec_x_positions = []
 
     # Initialize obstacles list with number of obstacles and the obstacle shape types stack
-    def __init__(self, numObstacles, obstacleTypes, recXPositions):
-        self.recXPositions = recXPositions
+    def __init__(self, num_obstacles, obstacle_types, rec_x_positions):
+        self.rec_x_positions = rec_x_positions
         # Defines first obstacles starting position
-        startPos = 5
+        start_pos = 5
         # Make sure obstacle list is empty before appending to it
         self.obstacles = []
         # Initialize each obstacle
-        for i in range(0, numObstacles):
+        for i in range(0, num_obstacles):
             # Get first type of obstacle
-            shapeType = obstacleTypes.pop(0)
+            shape_type = obstacle_types.pop(0)
             # Add to list
-            self.obstacles.append(obstacle(shapeType, startPos))
+            self.obstacles.append(Obstacle(shape_type, start_pos))
             # If the obstacle is a rectangle, determine its x-position from the stack
             self.relocate(self.obstacles[i])
             # Change starting position
-            startPos += 5
+            start_pos += 5
         # Save the remainder of initial obstacle types stack
-        self.typeStack = obstacleTypes
+        self.type_stack = obstacle_types
 
     # Moves all obstacles and checks their positions
-    def moveAllObs(self, speed):
+    def move_all_obs(self, speed):
+        """
+        Move all obstacles forward by speed amount.
+        Moves the obstacle back to start if it passed player
+        and game still has more obstacles, otherwise remove
+        obstacle from game.
+        """
         # If obstacle list not empty
         if len(self.obstacles) != 0:
             # For each object
             for obs in self.obstacles:
                 # Move forward
-                obs.moveObstacle(speed)
+                obs.move_obstacle(speed)
                 # If behind player
                 if obs.z < 0:
                     # If stack is empty
-                    if len(self.typeStack) == 0:
+                    if len(self.type_stack) == 0:
                         # Remove obstacle
                         self.obstacles.remove(obs)
                     # If not
                     else:
                         # z position based on number of obstacles
-                        zpos = len(self.obstacles) * 5
+                        z_pos = len(self.obstacles) * 5
                         # Move back and change shape
-                        shapeType = self.typeStack.pop(0)
-                        obs.moveBack(shapeType, zpos)
+                        shape_type = self.type_stack.pop(0)
+                        obs.move_back(shape_type, z_pos)
                         # Move the object in x-axis, if shape type changed to or from rectangle
                         self.relocate(obs)
             # Return False for not winning, game kept going
             return False
         # If list is empty, game won
-        else:
-            return True
+        return True
 
     # Relocates an obstacle in the x-axis
     def relocate(self, obstacle):
+        """
+        Relocates the obstacle x-position to shape
+        appropriate location.
+        """
         # It the object is a rectangle, change to xPos
-        if obstacle.shapeType == "rectangle":
+        if obstacle.shape_type == "rectangle":
             # Check if the stack is empty
-            if len(self.recXPositions) == 0:
-                raise ValueError("Rectangle positions stack does not have the correct amount of positions!")
-            else:
-                obstacle.x = self.recXPositions.pop(0)
+            if len(self.rec_x_positions) == 0:
+                raise ValueError(
+                    "Rectangle positions stack does not havethe correct amount of positions!"
+                    )
+            # If stack not empty, update position
+            obstacle.x = self.rec_x_positions.pop(0)
         # Otherwise move to middle
         else:
             obstacle.x = 0
 
     # Check if obstacle hit player
-    def checkHit(self, camX, camY):
+    def check_hit(self, cam_x, cam_y):
+        """
+        Check if position (cam_x, cam_y) was
+        hit by an obstacle
+        """
         # For each obstacle
         for obs in self.obstacles:
             # If obstacle has same x coordinate as camera at z = 0
             if round(obs.z, 0) == 0:
                 # If obstacle is a rectangle, x needs to be checked
-                if obs.shapeType == "rectangle":
-                    if obs.x == camX:
+                if obs.shape_type == "rectangle":
+                    if obs.x == cam_x:
                         # Return True for being hit
                         return True
                 # If obstacle is a bar, y needs to be checked
                 # high bar hits when y is 0 or 0.5
-                elif obs.shapeType == "highBar":
-                    if camY != -0.5:
+                elif obs.shape_type == "highBar":
+                    if cam_y != -0.5:
                         return True
                 # low bar hits when y is 0 or -0.5
-                elif obs.shapeType == "lowBar":
-                    if camY != 0.5:
+                elif obs.shape_type == "lowBar":
+                    if cam_y != 0.5:
                         return True
         # Return False for not being hit
         return False

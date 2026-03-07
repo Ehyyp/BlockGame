@@ -1,17 +1,17 @@
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-from gameState import gameStateClass
+from game_state import GameStateClass
 import sys
 
 # Defines all of the graphics functionality
-class graphicsClass:
+class GraphicsClass:
     # Defines the game functionality
-    gameState = None
+    game_state = None
 
     # Initialize graphics and game state
     def __init__(self, speed, stage):
-        self.gameState = gameStateClass(speed, stage)
+        self.game_state = GameStateClass(speed, stage)
 
     # Sets up the display
     def display(self):
@@ -21,12 +21,12 @@ class graphicsClass:
     
         # Set camera position
         # eyex, eyey, eyez, centerx, centery, centerz, upx, upy, upz
-        gluLookAt(self.gameState.camX, self.gameState.camY, self.gameState.camZ, self.gameState.camX, self.gameState.camY, self.gameState.camZ + 1, 0, 1, 0)
+        gluLookAt(self.game_state.cam_x, self.game_state.cam_y, self.game_state.cam_z, self.game_state.cam_x, self.game_state.cam_y, self.game_state.cam_z + 1, 0, 1, 0)
 
         # Draw the world
-        self.drawWorld()
+        self.draw_world()
         # Draw obstacles
-        self.drawAllObs()
+        self.draw_all_obs()
     
         # Double buffering displays one buffer and draws on another. Swapping them changes which one is displayed and which one is not
         # After swapping, the buffer that is no longer displayed is cleared
@@ -37,18 +37,18 @@ class graphicsClass:
     # The x and y parameters determine the mouse location when key is pressed and are required by the glutKeyboardFunc
     def keyboard(self, key, x=0, y=0):
         # Can't move in the air or when sliding
-        self.gameState.keyboard(key)
+        self.game_state.keyboard(key)
         glutPostRedisplay()
 
     # Defines what happens at idle, i.e. update obstacles and refresh display
     def idle(self):
-        self.gameState.idle()
+        self.game_state.idle()
         # Check if game is over
-        if self.gameState.gameLost == True:
+        if self.game_state.game_lost == True:
             print("You lost :(")
             glutDestroyWindow(glutGetWindow())
             sys.exit()
-        elif self.gameState.gameWon == True:
+        elif self.game_state.game_won == True:
             print("You won! :D")
             glutDestroyWindow(glutGetWindow())
             sys.exit()
@@ -57,13 +57,13 @@ class graphicsClass:
         glutPostRedisplay()
 
     # Draw all obstacles
-    def drawAllObs(self):
+    def draw_all_obs(self):
         # For each obstacle
-        for obs in self.gameState.stage.obstacles:
-            self.drawObstacle(obs)
+        for obs in self.game_state.stage.obstacles:
+            self.draw_obstacle(obs)
 
     # Uses OpenGL to draw a single obstacle
-    def drawObstacle(self, obstacle):
+    def draw_obstacle(self, obstacle):
         # Push new matrix
         glPushMatrix()
         # Move to obstacle start
@@ -71,14 +71,14 @@ class graphicsClass:
         # Set color to red
         glColor3f(255, 0, 0)
         # Draw with dimensions
-        self.drawBox(obstacle.dx, obstacle.dy, obstacle.dz)
+        self.draw_box(obstacle.dx, obstacle.dy, obstacle.dz)
         # Set color back to white
         glColor3f(1, 1, 1)
         # Pop matrix
         glPopMatrix()
 
     # Draws an OpenGL box
-    def drawBox(self, width, height, depth):
+    def draw_box(self, width, height, depth):
         # Start specifying the quadilateral
         glBegin(GL_QUADS)
         # Specify normal for the quadilateral, x, y, z
@@ -121,7 +121,7 @@ class graphicsClass:
         glEnd()
 
     # Defines the world box as ground and sky boxes
-    def drawWorld(self):
+    def draw_world(self):
         # Ground matrix
         glPushMatrix()
         # Translate to below camera
@@ -129,7 +129,7 @@ class graphicsClass:
         # Green
         glColor3f(0, 255, 0)
         # Draw ground
-        self.drawBox(70, 0.1, 70)
+        self.draw_box(70, 0.1, 70)
         # Change color back to white
         glColor3f(1, 1, 1)
         # Move out of ground matrix
@@ -142,7 +142,7 @@ class graphicsClass:
         # Blue sky
         glColor3f(0, 0, 255)
         # Draw sky
-        self.drawBox(100, 100, 0.1)
+        self.draw_box(100, 100, 0.1)
         # Change color back to white
         glColor3f(1, 1, 1)
         # Move out of sky matrix
