@@ -1,4 +1,4 @@
-name: Unit Testing
+name: Unit and Linting tests
 
 
 on: [push]
@@ -23,7 +23,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-cov pylint
 
-      - name: Game logic tests
+      - name: Game logic unit tests
         run: |
           cd src
           pytest --cov --cov-fail-under=100
