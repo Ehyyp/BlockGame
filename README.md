@@ -18,3 +18,7 @@ Start the GUI with
     python BlockGame.py
 
 The game is played with WASD keys, has two stages and game speed can be changed with the slider in GUI.
+
+## Program structure
+
+![Local Image](program_diagram.png)
