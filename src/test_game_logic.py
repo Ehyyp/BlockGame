@@ -19,9 +19,13 @@ hit_test_cases = [
     ([b'd', 0, b'a', b'w', 0], [80, 120, 80, 100, 120], 0.05),
     ([b'd', 0, b'a', b'w', b'w'], [80, 120, 80, 100, 120], 0.05),
 ]
-# Tests collision with obstacle
 @pytest.mark.parametrize("actions, wait_times, speed", hit_test_cases)
 def test_lose(actions, wait_times, speed):
+    """
+    Simulate playing the game and test if game was lost.
+    Game is simulated by defining keystrokes, how long to
+    wait before each keystroke and game speed.
+    """
     # Initialize game
     game_state = GameStateClass(speed, "test")
     # Execute all keystrokes or waits
@@ -46,9 +50,13 @@ win_test_cases = [
     ([b'd', 0, b'a', b'w', b's', 0], [80, 120, 80, 100, 100, 25], 0.05),
     ([b'a', b'd', 0, b'w', b's', 0], [80, 100, 120, 80, 100, 25], 0.05)
 ]
-# Tests collision with obstacle
 @pytest.mark.parametrize("actions, wait_times, speed", win_test_cases)
 def test_win(actions, wait_times, speed):
+    """
+    Simulate playing the game and test if game was won.
+    Game is simulated by defining keystrokes, how long to
+    wait before each keystroke and game speed.
+    """
     # Initialize game
     game_state = GameStateClass(speed, "test")
     # Execute all keystrokes or waits
@@ -78,10 +86,12 @@ load_test_cases = [
     ("stage2", ["rectangle", "rectangle", "highBar", "lowBar", "rectangle",
                 "highBar", "highBar"], [-1, 1, 0], 5, 100, 100)
 ]
-# Test loading the different stages
 @pytest.mark.parametrize("stage_name, stage, rec_position, speed, jump_reset," \
                          "slide_reset", load_test_cases)
 def test_load(stage_name, stage, rec_position, speed, jump_reset, slide_reset):
+    """
+    Test that loading the game initializes the variables as expected.
+    """
     # pylint: disable=too-many-positional-arguments
     # pylint: disable=too-many-arguments
     # All arguments need to be tested
@@ -95,8 +105,10 @@ def test_load(stage_name, stage, rec_position, speed, jump_reset, slide_reset):
     assert game_state.stage.type_stack == stage
     assert game_state.stage.rec_x_positions == rec_position
 
-# Test moving the player in x-axis
-def test_wasd():
+def test_ad():
+    """
+    Test moving the player in the x-axis with A and D keys.
+    """
     # Initialize game with extremely low speed, so that no object hits when
     # testing keyboard functionality
     game_state = GameStateClass("0.00001", "test")
@@ -122,6 +134,11 @@ jump_test_cases = [
 ]
 @pytest.mark.parametrize("jump_reset", jump_test_cases)
 def test_jump(jump_reset):
+    """
+    Test jumping with W key and that idle() works as expected
+    with jump reset timer, i.e. the player is brought back to
+    y = 0 after jump_reset number of idle() calls
+    """
     # Initialize game with extremely low speed, so that no object hits when
     # testing keyboard functionality
     game_state = GameStateClass("0.00001", "test", jump_reset=jump_reset)
@@ -147,6 +164,11 @@ slide_test_cases = [
 ]
 @pytest.mark.parametrize("slide_reset", slide_test_cases)
 def test_slide(slide_reset):
+    """
+    Test sliding with S key and that idle() works as expected
+    with slide reset timer, i.e. the player is brought back to
+    y = 0 after slide_reset number of idle() calls
+    """
     # Initialize game with extremely low speed, so that no object hits when
     # testing keyboard functionality
     game_state = GameStateClass("0.00001", "test", slide_reset=slide_reset)
@@ -172,6 +194,12 @@ illegal_moves_test_cases = [
 ]
 @pytest.mark.parametrize("jump_reset, slide_reset", illegal_moves_test_cases)
 def test_illegal_moves(jump_reset, slide_reset):
+    """
+    Test that illegal moves do not change player position, i.e.
+    x stays in positions [-1, 0, -1],
+    y stays in positions [-0.5, 0, 0.5]
+    and z stays in position 0
+    """
     # Initialize game with extremely low speed, so that no object hits when
     # testing keyboard functionality
     game_state = GameStateClass("0.00001", "test", jump_reset, slide_reset)
@@ -232,6 +260,9 @@ idle_test_cases = [
 # Test that idle function moves objects and registeres hits correctly
 @pytest.mark.parametrize("speed", idle_test_cases)
 def test_idle(speed):
+    """
+    Test the idle function which moves obstacles and
+    registers if the game was won or lost."""
     game_state = GameStateClass(speed, "test")
     # Test stage object starting positions where to compare object movement
     start_pos = [5, 10, 15]
@@ -270,6 +301,9 @@ reshape_test_cases = [
 # Tests the obstacle.reshape function
 @pytest.mark.parametrize("shapes, dx, dy, y", reshape_test_cases)
 def test_reshape(shapes, dx, dy, y):
+    """
+    Test reshaping obstacles.
+    """
     # Test reshaping from shapes[0] to shapes[1]
     obs = Obstacle(shapes[0], 5)
     assert obs.shape_type == shapes[0]
@@ -299,6 +333,10 @@ move_back_test_cases = [
 # Test moving the obstacle back from behind the player
 @pytest.mark.parametrize("shapes, z_positions, speed", move_back_test_cases)
 def test_move_back(shapes, z_positions, speed):
+    """
+    Test moving obstacles back to starting position,
+    after passing the player.
+    """
     obs = Obstacle(shapes[0], z_positions[0])
     obs.move_back(shapes[1], z_positions[1])
     assert obs.shape_type == shapes[1]
@@ -324,6 +362,9 @@ move_test_cases = [
 # Test the obstacle.moveobstacle() method
 @pytest.mark.parametrize("shape, z, speed", move_test_cases)
 def test_move(shape, z, speed):
+    """
+    Test moving an obstacle.
+    """
     obs = Obstacle(shape, z)
     obs.move_obstacle(speed)
     assert obs.z == z - speed
@@ -338,6 +379,9 @@ move_all_test_cases = [
 # Test moving all obstacles
 @pytest.mark.parametrize("n_obs, obstacle_types, rec_x_positions, speed", move_all_test_cases)
 def test_move_all(n_obs, obstacle_types, rec_x_positions, speed):
+    """
+    Test moving all obstacles.
+    """
     # Initialize test
     course = ObstacleCourse(n_obs, obstacle_types, rec_x_positions)
     # Starting positions of all obs, which are by default placed 5 distance units apart
@@ -359,6 +403,11 @@ relocate_test_cases = [
 # Test relocating an object in the x-axis
 @pytest.mark.parametrize("n_obs, obstacle_types, rec_x_positions", relocate_test_cases)
 def test_relocate(n_obs, obstacle_types, rec_x_positions):
+    """
+    Test relocating obstacles in the x-axis.
+    Rectangles need their x-axis defined in the rec_x_positions stack,
+    low and high Bars are always at x = 0.
+    """
     course = ObstacleCourse(n_obs, obstacle_types, rec_x_positions)
     # Initializing ObstacleCourse already relocates rectangles, so all of the rectangles in
     # the starting screen will reduce the number of elements in rec_x_positions by one.

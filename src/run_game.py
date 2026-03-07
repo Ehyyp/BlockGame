@@ -1,7 +1,7 @@
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-from game_graphics import graphics_class
+from game_graphics import GraphicsClass
 import sys
 
 def init():
@@ -58,7 +58,7 @@ def reshape(w, h):
 
 def main():
     # Initialize game
-    graphics_object = graphics_class(sys.argv[1], sys.argv[2])
+    graphics_object = GraphicsClass(sys.argv[1], sys.argv[2])
     # Initialize GLUT library
     glutInit(sys.argv)
     # Select display channels and buffering. Here 4 channels are used, RGB and depth. Double buffering enabled
