@@ -30,8 +30,8 @@ jobs:
 
       - name: Pylint tests
         run: |
+          pylint --fail-under=10 block_game.py
+          cd src
           pylint --fail-under=10 game_state.py
           pylint --fail-under=10 obstacle_classes.py
           pylint --fail-under=10 test_game_logic.py
-          cd ..
-          pylint --fail-under=10 block_game.py
